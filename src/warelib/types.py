@@ -9,12 +9,11 @@ Useful type definitions for warelib.
 """
 
 from warelib.callbacks import (
-    WareCallback,
-    GeneratorWareCallback,
-    AsyncWareCallback,
     AsyncGeneratorWareCallback,
+    AsyncWareCallback,
+    GeneratorWareCallback,
+    WareCallback,
 )
-
 
 type WareCallbackT[**P, Y, S, R] = (
     WareCallback[P, R]

@@ -19,6 +19,7 @@ These enable wares to be run cooperatively, similar to asyncio tasks.
 from collections.abc import AsyncGenerator, Coroutine, Generator
 from typing import Any, Callable, Optional
 
+import warelib.config as config
 from warelib.exceptions import (
     AsyncWareCallbackEnded,
     WareCallbackBegun,
@@ -70,7 +71,9 @@ class GeneratorWareCallback[**P, Y, S, R](WareCallback[P, Generator[Y, S, R]]):
         """Creates a new ware callback generator instance and runs it once, passing the provided arguments to it."""
 
         if self._gen:
-            raise WareCallbackBegun("Generator callback has already begun a generator")
+            raise config.exceptions.get("WareCallbackBegun", WareCallbackBegun)(
+                "Generator callback has already begun a generator"
+            )
 
         self._gen = self._callback(*args, **kwargs)
         return self.run_once(None)  # type: ignore # convenience
@@ -89,7 +92,7 @@ class GeneratorWareCallback[**P, Y, S, R](WareCallback[P, Generator[Y, S, R]]):
             WareCallbackEnded: The generator ware callback ended.
         """
         if self._gen is None:
-            raise WareCallbackNotBegun(
+            raise config.exceptions.get("WareCallbackNotBegun", WareCallbackNotBegun)(
                 "Generator ware callback has not begun a generator"
             )
 
@@ -97,7 +100,7 @@ class GeneratorWareCallback[**P, Y, S, R](WareCallback[P, Generator[Y, S, R]]):
             return self._gen.send(arg)
         except StopIteration as s:
             self._ended = True
-            exc = WareCallbackEnded()
+            exc = config.exceptions.get("WareCallbackEnded", WareCallbackEnded)()
             exc.value = s.value
             raise exc from None
 
@@ -115,7 +118,9 @@ class GeneratorWareCallback[**P, Y, S, R](WareCallback[P, Generator[Y, S, R]]):
         """
         if self._gen is not None:
             try:
-                return self._gen.throw(exc_class)
+                return self._gen.throw(
+                    config.exceptions.get(exc_class.__name__, exc_class)
+                )
             except StopIteration as s:
                 return s.value
             finally:
@@ -154,7 +159,7 @@ class AsyncGeneratorWareCallback[**P, Y, S](GeneratorWareCallback[P, Y, S, None]
 
     def begin(self, *args: P.args, **kwargs: P.kwargs) -> None:
         if self._gen is not None:
-            raise WareCallbackBegun(
+            raise config.exceptions.get("WareCallbackBegun", WareCallbackBegun)(
                 "Async generator callback has already begun a generator"
             )
 
@@ -176,14 +181,16 @@ class AsyncGeneratorWareCallback[**P, Y, S](GeneratorWareCallback[P, Y, S, None]
             AsyncWareCallbackEnded: The generator ware callback ended.
         """
         if self._gen is None:
-            raise WareCallbackNotBegun(
+            raise config.exceptions.get("WareCallbackNotBegun", WareCallbackNotBegun)(
                 "Async generator ware callback has not begun a generator"
             )
 
         try:
             return await self._gen.asend(arg)
         except StopAsyncIteration:
-            raise AsyncWareCallbackEnded() from None
+            raise config.exceptions.get(
+                "AsyncWareCallbackEnded", AsyncWareCallbackEnded
+            )() from None
 
     async def reset(self) -> None:
         """Resets the ware callback by closing its async generator, before deleting it."""

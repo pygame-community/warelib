@@ -14,6 +14,7 @@ from pathlib import Path
 from types import ModuleType
 from typing import Callable, Self
 
+import warelib.config as config
 from warelib.callbacks import GeneratorWareCallback, WareCallback
 from warelib.exceptions import InvalidWareStructure
 from warelib.utils import import_module_from_path, unimport_module
@@ -91,22 +92,28 @@ class Ware[G, C]:
         ware.callbacks = {}  # type: ignore
         for k, v in ns_schema.items():
             if k not in module.__dict__:
-                raise InvalidWareStructure(
+                raise config.exceptions.get(
+                    "InvalidWareStructure", InvalidWareStructure
+                )(
                     f"Ware module at {module.__name__} doesn't contain a variable named '{k}'"
                 )
             mval = module.__dict__[k]
             if isinstance(v, type) and not isinstance(mval, v):
-                raise InvalidWareStructure(
-                    f"Ware module variable '{k}' is not of type '{v.__name__}'"
-                )
+                raise config.exceptions.get(
+                    "InvalidWareStructure", InvalidWareStructure
+                )(f"Ware module variable '{k}' is not of type '{v.__name__}'")
             elif callable(v):
                 try:
                     if not v(mval):
-                        raise InvalidWareStructure(
+                        raise config.exceptions.get(
+                            "InvalidWareStructure", InvalidWareStructure
+                        )(
                             f"Ware module variable '{k}' is not of type '{v.__name__}' according to '{v}' callable check"
                         )
                 except TypeError as te:
-                    raise InvalidWareStructure(
+                    raise config.exceptions.get(
+                        "InvalidWareStructure", InvalidWareStructure
+                    )(
                         f"Ware module variable '{k}' is not of type '{v.__name__}' according to '{v}' callable check"
                     ) from te
 

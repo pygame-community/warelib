@@ -26,8 +26,24 @@ __copyright__ = "Copyright 2025-present pygame-community"
 __version__ = "0.1.0"
 
 
+import warelib.config as config
+
 from .callbacks import *  # noqa: F403
 from .exceptions import *  # noqa: F403
 from .manager import *  # noqa: F403
 from .types import *  # noqa: F403
 from .ware import *  # noqa: F403
+
+
+def init(exceptions_config: config.ExceptionsConfig | None = None):
+    """Initializes warelib with optional configuration.
+    Not mandatory to call.
+
+    Args:
+        exceptions_config: Optional custom exceptions configuration, which allows
+            the mapping of default warelib exception class names to custom exception
+            classes. This can be used to create 'branded' exception classes for
+            projects wrapping warelib.
+    """
+    if exceptions_config is not None:
+        config.exceptions = exceptions_config

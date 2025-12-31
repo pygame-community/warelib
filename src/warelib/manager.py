@@ -11,14 +11,15 @@ Ware manager module for parallel ware orchestration.
 from collections.abc import Sequence
 from typing import Any, Callable, Mapping
 
+import warelib.config as config
 from warelib.callbacks import (
     AsyncGeneratorWareCallback,
     AsyncWareCallback,
     GeneratorWareCallback,
     WareCallback,
 )
-from warelib.ware import Ware
 from warelib.exceptions import WareCallbackMustEnd
+from warelib.ware import Ware
 
 
 class WareManager[W: Ware]:
@@ -266,7 +267,11 @@ class WareManager[W: Ware]:
                     callback, GeneratorWareCallback
                 ):
                     if not callback.has_ended() and callback.is_active():
-                        callback.reset(WareCallbackMustEnd)
+                        callback.reset(
+                            config.exceptions.get(
+                                "WareCallbackMustEnd", WareCallbackMustEnd
+                            )
+                        )
 
             # 3. Call reset callback if it exists
             if "reset" in ware.callbacks:
@@ -308,7 +313,11 @@ class WareManager[W: Ware]:
                             await callback.reset()
                     elif isinstance(callback, GeneratorWareCallback):
                         if not callback.has_ended() and callback.is_active():
-                            callback.reset(WareCallbackMustEnd)
+                            callback.reset(
+                                config.exceptions.get(
+                                    "WareCallbackMustEnd", WareCallbackMustEnd
+                                )
+                            )
 
             # 3. Call reset callback if it exists
             if "reset" in ware.callbacks:
