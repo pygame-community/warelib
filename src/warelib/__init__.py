@@ -29,13 +29,14 @@ __version__ = "0.1.0"
 import warelib.config as config
 
 from .callbacks import *  # noqa: F403
+from .config import ExceptionsConfig
 from .exceptions import *  # noqa: F403
 from .manager import *  # noqa: F403
 from .types import *  # noqa: F403
 from .ware import *  # noqa: F403
 
 
-def init(exceptions_config: config.ExceptionsConfig | None = None):
+def init(exceptions_config: ExceptionsConfig | None = None):
     """Initializes warelib with optional configuration.
     Not mandatory to call.
 
@@ -46,4 +47,4 @@ def init(exceptions_config: config.ExceptionsConfig | None = None):
             projects wrapping warelib.
     """
     if exceptions_config is not None:
-        config.exceptions = exceptions_config
+        config.exceptions.update(exceptions_config)
